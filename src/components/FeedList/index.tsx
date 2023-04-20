@@ -57,6 +57,8 @@ export const FeedList = forwardRef<FeedListInstance, Props>((props, ref) => {
             onScroll={onScrollHandler}
             showsVerticalScrollIndicator={false}
             onScrollEndDrag={props.onScrollEndDrag}
+            onMomentumScrollBegin={props.onMomentumScrollBegin}
+            onMomentumScrollEnd={props.onMomentumScrollEnd}
             onEndReachedThreshold={0.2}
             onEndReached={() => {
                 if (

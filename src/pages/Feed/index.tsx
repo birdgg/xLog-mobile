@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useRef, useState } from "react";
 import Animated, { useAnimatedScrollHandler, useSharedValue, withSpring } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
@@ -15,6 +15,7 @@ export const FeedPage: FC<Props> = (props) => {
     const [currentSortType, setCurrentSortType] = useState<SortType>(_sortType)
     const prevTranslationYAnimValue = useSharedValue<number>(0);
     const isExpandedAnimValue = useSharedValue<0 | 1>(1);
+    const isSwiping = useSharedValue<0 | 1>(0)
 
     const onScroll = useAnimatedScrollHandler((event) => {
         const edge = 50;
@@ -29,8 +30,7 @@ export const FeedPage: FC<Props> = (props) => {
             // Hiding the connection button
             isExpandedAnimValue.value = withSpring(0)
         } else if (
-            event.contentOffset.y - prevTranslationYAnimValue.value < -edge &&
-            isExpandedAnimValue.value !== 1
+            isExpandedAnimValue.value !== 1 && (event.contentOffset.y - prevTranslationYAnimValue.value < -edge && isSwiping.value || event.contentOffset.y < edge)
         ) {
             // Showing the connection button
             isExpandedAnimValue.value = withSpring(1)
@@ -41,6 +41,15 @@ export const FeedPage: FC<Props> = (props) => {
         prevTranslationYAnimValue.value = e.nativeEvent.contentOffset.y
     }
 
+    const onMomentumScrollBegin = () => {
+        isSwiping.value = 1
+    }
+
+    const onMomentumScrollEnd = () => {
+        isSwiping.value = 0
+    }
+
+
     return <Animated.View style={{ flex: 1 }}>
         <Header
             currentSortType={currentSortType}
@@ -50,7 +59,7 @@ export const FeedPage: FC<Props> = (props) => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
             }}
         />
-        <FeedList type={currentSortType} onScroll={onScroll} onScrollEndDrag={onScrollEndDrag} />
+        <FeedList type={currentSortType} onScroll={onScroll} onScrollEndDrag={onScrollEndDrag} onMomentumScrollBegin={onMomentumScrollBegin} onMomentumScrollEnd={onMomentumScrollEnd} />
         {/* TODO */}
         {/* <AnimatedConnectionButton visibleAnimValue={isExpandedAnimValue} /> */}
     </Animated.View>
